@@ -1,0 +1,23 @@
+{
+  "name": "streamlink-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "aws-cdk": "^2.1031.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.222.0",
+    "constructs": "^10.4.2",
+    "streamlink-serverless": "^0.0.70"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "cdk:bootstrap": "cdk bootstrap",
+    "cdk:deploy": "cdk deploy",
+    "cdk:destroy": "cdk destroy"
+  }
+}
+

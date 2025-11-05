@@ -1,0 +1,1 @@
+{"version":3,"file":"streamlink-stack.d.ts","sourceRoot":"","sources":["streamlink-stack.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,GAAG,MAAM,aAAa,CAAC;AACnC,OAAO,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAIvC,qBAAa,eAAgB,SAAQ,GAAG,CAAC,KAAK;gBAChC,KAAK,EAAE,SAAS,EAAE,EAAE,EAAE,MAAM,EAAE,KAAK,CAAC,EAAE,GAAG,CAAC,UAAU;CAgBjE"}

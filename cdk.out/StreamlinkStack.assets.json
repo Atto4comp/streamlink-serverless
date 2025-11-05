@@ -1,0 +1,51 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "f6191b25ca59c148725bb21616495d59f660596ba6e24a6261d6adc5144078ba": {
+      "displayName": "StreamlinkBackend/Layer/Code",
+      "source": {
+        "path": "/home/flex/streamlink-serverless/streamlink-lambda/node_modules/streamlink-serverless/streamlink",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-eu-north-1-add9cbd3": {
+          "bucketName": "cdk-slink001-assets-${AWS::AccountId}-eu-north-1",
+          "objectKey": "f6191b25ca59c148725bb21616495d59f660596ba6e24a6261d6adc5144078ba.zip",
+          "region": "eu-north-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-slink001-file-publishing-role-${AWS::AccountId}-eu-north-1"
+        }
+      }
+    },
+    "1d3a0f69575846562ba1d82d5ffe1e2a0bdb43c24151aecd20072ee35bff47c6": {
+      "displayName": "StreamlinkBackend/Default/Code",
+      "source": {
+        "path": "asset.1d3a0f69575846562ba1d82d5ffe1e2a0bdb43c24151aecd20072ee35bff47c6",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-eu-north-1-0f21427d": {
+          "bucketName": "cdk-slink001-assets-${AWS::AccountId}-eu-north-1",
+          "objectKey": "1d3a0f69575846562ba1d82d5ffe1e2a0bdb43c24151aecd20072ee35bff47c6.zip",
+          "region": "eu-north-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-slink001-file-publishing-role-${AWS::AccountId}-eu-north-1"
+        }
+      }
+    },
+    "5f1938b2a54e4755de00e58e82998dab7c500d2ef45d1a9cf21b68d15400622d": {
+      "displayName": "StreamlinkStack Template",
+      "source": {
+        "path": "StreamlinkStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-eu-north-1-2e02e7a7": {
+          "bucketName": "cdk-slink001-assets-${AWS::AccountId}-eu-north-1",
+          "objectKey": "5f1938b2a54e4755de00e58e82998dab7c500d2ef45d1a9cf21b68d15400622d.json",
+          "region": "eu-north-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-slink001-file-publishing-role-${AWS::AccountId}-eu-north-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

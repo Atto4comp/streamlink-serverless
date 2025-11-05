@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    /* File structure */
+    "rootDir": ".",
+    "outDir": "dist",
+
+    /* Module and target environment */
+    "module": "commonjs",
+    "target": "ES2020",
+    "lib": ["es2020"],
+    "types": ["node"],
+
+    /* Output settings */
+    "sourceMap": true,
+    "declaration": false,
+    "declarationMap": false,
+
+    /* Type checking */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+
+    /* Interop and compilation speed */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    /* Quality-of-life checks */
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["bin/**/*.ts", "lib/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+
