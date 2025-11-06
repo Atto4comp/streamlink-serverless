@@ -58,22 +58,37 @@ jobs:
       - name: CDK Deploy
         run: npx cdk deploy $STACK_NAME --require-approval never --outputs-file cdk-outputs.json
 
+      - name: Inspect outputs file (debug)
+        run: |
+          echo "---- cdk-outputs.json ----"
+          cat cdk-outputs.json || true
+          echo "--------------------------"
+
       - name: Grab Endpoint output
         id: outputs
         run: |
-          # Try CDK outputs file first
+          # Try CDK outputs file first (handle both keys)
+          EP=""
           if [ -f cdk-outputs.json ]; then
-            EP=$(jq -r --arg STACK "${STACK_NAME}" '.[$STACK].EndpointUrl // empty' cdk-outputs.json)
+            EP=$(jq -r --arg STACK "${STACK_NAME}" '.[$STACK].EndpointUrl // .[$STACK].ApiEndpoint // empty' cdk-outputs.json)
           fi
-          # Fallback to CloudFormation if empty
+
+          # Fallback to CloudFormation if still empty
           if [ -z "$EP" ]; then
             EP=$(aws cloudformation describe-stacks \
               --region "${AWS_REGION}" \
               --stack-name "${STACK_NAME}" \
-              --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" \
-              --output text || true)
+              --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl' || OutputKey=='ApiEndpoint'].OutputValue | [0]" \
+              --output text 2>/dev/null || true)
           fi
-          echo "endpoint=$EP" >> "$GITHUB_OUTPUT"
+
+          # Final sanity
+          if [ -z "$EP" ] || [ "$EP" = "None" ]; then
+            echo "Failed to find endpoint output. Check stack outputs in AWS Console → CloudFormation → ${STACK_NAME} → Outputs."
+            exit 1
+          fi
+
+          echo "endpoint=${EP}" >> "$GITHUB_OUTPUT"
 
       - name: Show URL
         run: |
@@ -83,5 +98,5 @@ jobs:
           echo "${{ steps.outputs.outputs.endpoint }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### Quick test" >> $GITHUB_STEP_SUMMARY
-          echo "\`curl \"${{ steps.outputs.outputs.endpoint }}live/youtube.com/@NASA/best.m3u8\" -I\`" >> $GITHUB_STEP_SUMMARY
+          echo "\`curl \"${{ steps.outputs.outputs.endpoint }}/live/youtube.com/@NASA/best.m3u8\" -I\`" >> $GITHUB_STEP_SUMMARY
 
