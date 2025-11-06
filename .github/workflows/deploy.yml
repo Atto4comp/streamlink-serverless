@@ -56,17 +56,24 @@ jobs:
         # run: npx cdk bootstrap "aws://803989606671/${{ env.AWS_REGION }}" --qualifier slink001 --toolkit-stack-name CDKToolkitSlink
 
       - name: CDK Deploy
-        run: npx cdk deploy $STACK_NAME --require-approval never
+        run: npx cdk deploy $STACK_NAME --require-approval never --outputs-file cdk-outputs.json
 
       - name: Grab Endpoint output
         id: outputs
         run: |
-          ENDPOINT=$(aws cloudformation describe-stacks \
-            --region "${{ env.AWS_REGION }}" \
-            --stack-name "${{ env.STACK_NAME }}" \
-            --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" \
-            --output text || true)
-          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+          # Try CDK outputs file first
+          if [ -f cdk-outputs.json ]; then
+            EP=$(jq -r --arg STACK "${STACK_NAME}" '.[$STACK].EndpointUrl // empty' cdk-outputs.json)
+          fi
+          # Fallback to CloudFormation if empty
+          if [ -z "$EP" ]; then
+            EP=$(aws cloudformation describe-stacks \
+              --region "${AWS_REGION}" \
+              --stack-name "${STACK_NAME}" \
+              --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" \
+              --output text || true)
+          fi
+          echo "endpoint=$EP" >> "$GITHUB_OUTPUT"
 
       - name: Show URL
         run: |
