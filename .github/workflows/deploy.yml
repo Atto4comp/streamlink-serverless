@@ -2,11 +2,11 @@ name: Deploy Streamlink Lambda
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
-  id-token: write    # required for OIDC
+  id-token: write       # OIDC
   contents: read
 
 env:
@@ -49,10 +49,11 @@ jobs:
           role-to-assume: arn:aws:iam::803989606671:role/GitHubOIDC-CDK-Deploy
           role-session-name: cdk-deploy
 
-      # Bootstrap (safe to re-run; CDK will no-op if already bootstrapped)
+      # Safe to rerun; if already bootstrapped it will no-op.
       - name: CDK Bootstrap
-        run: npx cdk bootstrap aws://803989606671/${{ env.AWS_REGION }} \
-              --qualifier slink001
+        run: npx cdk bootstrap "aws://803989606671/${{ env.AWS_REGION }}" --qualifier slink001
+        # If you ever need to avoid conflicts with an old toolkit stack, use:
+        # run: npx cdk bootstrap "aws://803989606671/${{ env.AWS_REGION }}" --qualifier slink001 --toolkit-stack-name CDKToolkitSlink
 
       - name: CDK Deploy
         run: npx cdk deploy $STACK_NAME --require-approval never
@@ -60,15 +61,20 @@ jobs:
       - name: Grab Endpoint output
         id: outputs
         run: |
-          ENDPOINT=$(jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="EndpointUrl") | .OutputValue' < cdk.out/${STACK_NAME}.template.json 2>/dev/null || true)
-          # If template didn’t include Outputs, fall back to describe-stacks:
-          if [ -z "$ENDPOINT" ]; then
-            ENDPOINT=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" --output text || true)
-          fi
+          ENDPOINT=$(aws cloudformation describe-stacks \
+            --region "${{ env.AWS_REGION }}" \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" \
+            --output text || true)
           echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
 
       - name: Show URL
         run: |
           echo "Endpoint: ${{ steps.outputs.outputs.endpoint }}"
-          echo "Example test:"
-          echo "  curl \"${{ steps.outputs.outputs.endpoint }}live/youtube.com/@NASA/best.m3u8\" -I" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Streamlink Lambda URL" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.outputs.outputs.endpoint }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Quick test" >> $GITHUB_STEP_SUMMARY
+          echo "\`curl \"${{ steps.outputs.outputs.endpoint }}live/youtube.com/@NASA/best.m3u8\" -I\`" >> $GITHUB_STEP_SUMMARY
+
