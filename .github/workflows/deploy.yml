@@ -1,0 +1,74 @@
+name: Deploy Streamlink Lambda
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write    # required for OIDC
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+  CDK_DEFAULT_REGION: eu-north-1
+  CDK_DEFAULT_ACCOUNT: 803989606671
+  STACK_NAME: StreamlinkStack
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build (ts -> dist)
+        run: npm run build
+
+      - name: Configure AWS creds via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::803989606671:role/GitHubOIDC-CDK-Deploy
+          role-session-name: cdk-deploy
+
+      # Bootstrap (safe to re-run; CDK will no-op if already bootstrapped)
+      - name: CDK Bootstrap
+        run: npx cdk bootstrap aws://803989606671/${{ env.AWS_REGION }} \
+              --qualifier slink001
+
+      - name: CDK Deploy
+        run: npx cdk deploy $STACK_NAME --require-approval never
+
+      - name: Grab Endpoint output
+        id: outputs
+        run: |
+          ENDPOINT=$(jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="EndpointUrl") | .OutputValue' < cdk.out/${STACK_NAME}.template.json 2>/dev/null || true)
+          # If template didn’t include Outputs, fall back to describe-stacks:
+          if [ -z "$ENDPOINT" ]; then
+            ENDPOINT=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EndpointUrl'].OutputValue" --output text || true)
+          fi
+          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+
+      - name: Show URL
+        run: |
+          echo "Endpoint: ${{ steps.outputs.outputs.endpoint }}"
+          echo "Example test:"
+          echo "  curl \"${{ steps.outputs.outputs.endpoint }}live/youtube.com/@NASA/best.m3u8\" -I" >> $GITHUB_STEP_SUMMARY
